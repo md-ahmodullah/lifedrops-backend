@@ -80,6 +80,29 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/users", async (req, res) => {
+      try {
+        const { blood, district, upazila } = req.query;
+
+        const query = {};
+        if (blood) {
+          query.blood = blood;
+        }
+        if (district) {
+          query.district = district;
+        }
+        if (upazila) {
+          query.upazila = upazila;
+        }
+
+        const results = await userCollection.find(query).toArray();
+        res.json(results);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching data" });
+      }
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
