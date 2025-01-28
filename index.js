@@ -118,7 +118,7 @@ async function run() {
     app.delete("/donationRequest/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const request = await donationRequestCollection.findOne(query);
+      const donation = await donationRequestCollection.findOne(query);
       const result = await donationRequestCollection.deleteOne(query);
       res.send(result);
     });
