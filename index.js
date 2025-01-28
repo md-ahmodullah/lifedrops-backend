@@ -53,13 +53,10 @@ async function run() {
 
     app.get("/donationRequest", async (req, res) => {
       const { requesterEmail, status } = req.query;
-
       const query = {};
-
-      if (status) {
+      if (status && status !== "All") {
         query.status = status;
       }
-
       if (requesterEmail) {
         query.requesterEmail = requesterEmail;
       }
@@ -90,7 +87,6 @@ async function run() {
     app.get("/users", async (req, res) => {
       try {
         const { blood, district, upazila } = req.query;
-
         const query = {};
         if (blood) {
           query.blood = blood;
@@ -101,7 +97,6 @@ async function run() {
         if (upazila) {
           query.upazila = upazila;
         }
-
         const results = await userCollection.find(query).toArray();
         res.json(results);
       } catch (error) {
