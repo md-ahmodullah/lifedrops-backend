@@ -105,6 +105,32 @@ async function run() {
       }
     });
 
+    app.put("/donationRequest/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateRequest = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedRequest = {
+        $set: {
+          name: updateRequest.name,
+          blood: updateRequest.blood,
+          district: updateRequest.district,
+          upazila: updateRequest.upazila,
+          hospital: updateRequest.hospital,
+          address: updateRequest.address,
+          date: updateRequest.date,
+          time: updateRequest.time,
+          message: updateRequest.message,
+        },
+      };
+      const result = await donationRequestCollection.updateOne(
+        query,
+        updatedRequest,
+        options
+      );
+      res.send(result);
+    });
+
     app.patch("/donationRequest/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
