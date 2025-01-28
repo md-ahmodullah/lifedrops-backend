@@ -7,10 +7,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://life-drops-server-seven.vercel.app",
-    ],
+    origin: ["http://localhost:5173", "https://life-drops-b7147.web.app"],
   })
 );
 app.use(express.json());
