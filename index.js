@@ -1,7 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-// const jwt = require("jsonwebtoken");
-// const cookieParser = require("cookie-parser");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5000;
@@ -9,27 +7,6 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.use(cors());
 app.use(express.json());
-// app.use(
-//   cors({
-//     origin: ["http://localhost:5173", "https://edulink-f2125.web.app"],
-//     credentials: true,
-//   })
-// );
-// app.use(cookieParser());
-// const verifyToken = (req, res, next) => {
-//   const token = req.cookies?.token;
-
-//   if (!token) {
-//     return res.status(401).send({ message: "Unauthorized Access!" });
-//   }
-
-//   jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
-//     if (err) {
-//       return res.status(401).send({ message: "Unauthorized Access!" });
-//     }
-//     next();
-//   });
-// };
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uqv4w.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -43,7 +20,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const userCollection = client.db("registerDB").collection("userCollection");
 
@@ -171,12 +148,12 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
-  } finally {
-  }
+  //   await client.db("admin").command({ ping: 1 });
+  //   console.log(
+  //     "Pinged your deployment. You successfully connected to MongoDB!"
+  //   );
+  // } finally {
+  // }
 }
 run().catch(console.dir);
 
