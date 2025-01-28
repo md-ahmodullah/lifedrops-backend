@@ -72,7 +72,7 @@ async function run() {
 
     app.get("/users", async (req, res) => {
       try {
-        const { blood, district, upazila, email } = req.query;
+        const { blood, district, upazila, email, status } = req.query;
         const query = {};
         if (blood) {
           query.blood = blood;
@@ -85,6 +85,9 @@ async function run() {
         }
         if (email) {
           query.email = email;
+        }
+        if (status && status !== "All") {
+          query.status = status;
         }
         const results = await userCollection.find(query).toArray();
         res.json(results);
