@@ -78,6 +78,11 @@ async function run() {
       res.send(donation);
     });
 
+    app.post("/users", async (req, res) => {
+      const newUsers = req.body;
+      const result = await userCollection.insertOne(newUsers);
+      res.send(result);
+    });
     app.post("/donationRequest", async (req, res) => {
       const newRequest = req.body;
       const result = await donationRequestCollection.insertOne(newRequest);
@@ -86,7 +91,7 @@ async function run() {
 
     app.get("/users", async (req, res) => {
       try {
-        const { blood, district, upazila } = req.query;
+        const { blood, district, upazila, email } = req.query;
         const query = {};
         if (blood) {
           query.blood = blood;
@@ -97,7 +102,24 @@ async function run() {
         if (upazila) {
           query.upazila = upazila;
         }
+        if (email) {
+          query.email = email;
+        }
         const results = await userCollection.find(query).toArray();
+        res.json(results);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching data" });
+      }
+    });
+    app.get("/allusers", async (req, res) => {
+      try {
+        const { email } = req.query;
+        const query = {};
+        if (email) {
+          query.email = email;
+        }
+        const results = await userCollection.findOne(query);
         res.json(results);
       } catch (error) {
         console.error(error);
