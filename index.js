@@ -111,6 +111,27 @@ async function run() {
       }
     });
 
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateUserInfo = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedUserInfo = {
+        $set: {
+          name: updateUserInfo.name,
+          photo: updateUserInfo.photo,
+          blood: updateUserInfo.blood,
+          district: updateUserInfo.district,
+          upazila: updateUserInfo.upazila,
+        },
+      };
+      const result = await userCollection.updateOne(
+        query,
+        updatedUserInfo,
+        options
+      );
+      res.send(result);
+    });
     app.put("/donationRequest/:id", async (req, res) => {
       const id = req.params.id;
       const updateRequest = req.body;
