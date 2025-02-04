@@ -119,7 +119,7 @@ async function run() {
       const updatedUserInfo = {
         $set: {
           name: updateUserInfo.name,
-          photo: updateUserInfo.photo,
+          photoURL: updateUserInfo.photoURL,
           blood: updateUserInfo.blood,
           district: updateUserInfo.district,
           upazila: updateUserInfo.upazila,
@@ -161,9 +161,19 @@ async function run() {
     app.patch("/donationRequest/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const assignment = await donationRequestCollection.findOne(query);
+      const target = await donationRequestCollection.findOne(query);
       const modify = req.body;
       const result = await donationRequestCollection.updateOne(query, {
+        $set: modify,
+      });
+      res.send(result);
+    });
+    app.patch("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const target = await userCollection.findOne(query);
+      const modify = req.body;
+      const result = await userCollection.updateOne(query, {
         $set: modify,
       });
       res.send(result);
