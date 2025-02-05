@@ -27,6 +27,7 @@ async function run() {
     // await client.connect();
 
     const userCollection = client.db("registerDB").collection("userCollection");
+    const blogs = client.db("blogsDB").collection("blogs");
 
     const donationRequestCollection = client
       .db("requestDB")
@@ -99,6 +100,21 @@ async function run() {
         res.status(500).json({ message: "Error fetching data" });
       }
     });
+    app.get("/blogs", async (req, res) => {
+      const { status } = req.query;
+      const query = {};
+      if (status && status !== "All") {
+        query.status = status;
+      }
+      const blog = await blogs.find(query).toArray();
+      res.json(blog);
+    });
+    app.get("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const blog = await blogs.findOne(query);
+      res.send(blog);
+    });
 
     app.post("/users", async (req, res) => {
       const newUsers = req.body;
@@ -108,6 +124,11 @@ async function run() {
     app.post("/donationRequest", async (req, res) => {
       const newRequest = req.body;
       const result = await donationRequestCollection.insertOne(newRequest);
+      res.send(result);
+    });
+    app.post("/blogs", async (req, res) => {
+      const newBlogs = req.body;
+      const result = await blogs.insertOne(newBlogs);
       res.send(result);
     });
 
@@ -176,13 +197,30 @@ async function run() {
       const result = await userCollection.updateOne(query, {
         $set: modify,
       });
-      res.send(target);
+      res.send(result);
+    });
+    app.patch("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const target = await blogs.findOne(query);
+      const modify = req.body;
+      const result = await blogs.updateOne(query, {
+        $set: modify,
+      });
+      res.send(result);
     });
     app.delete("/donationRequest/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const donation = await donationRequestCollection.findOne(query);
       const result = await donationRequestCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.delete("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const donation = await blogs.findOne(query);
+      const result = await blogs.deleteOne(query);
       res.send(result);
     });
 
