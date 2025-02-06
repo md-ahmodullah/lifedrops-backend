@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -32,6 +33,14 @@ async function run() {
     const donationRequestCollection = client
       .db("requestDB")
       .collection("donationRequest");
+
+    app.post("jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
 
     app.get("/donationRequest", async (req, res) => {
       const { requesterEmail, status } = req.query;
