@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
 
     const userCollection = client.db("registerDB").collection("userCollection");
     const blogs = client.db("blogsDB").collection("blogs");
@@ -34,13 +34,38 @@ async function run() {
       .db("requestDB")
       .collection("donationRequest");
 
-    app.post("jwt", async (req, res) => {
+    app.post("/jwt", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1h",
       });
       res.send({ token });
     });
+
+    const verifyToken = (req, res, next) => {
+      if (!req.headers.authorization) {
+        return res.status(403).send("Forbidden Access");
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send("Access Denied");
+        }
+        req.decoded = decoded;
+        next();
+      });
+    };
+
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === "Admin";
+      if (!isAdmin) {
+        return res.status(401).send({ message: "Unauthorized Access" });
+      }
+      next();
+    };
 
     app.get("/donationRequest", async (req, res) => {
       const { requesterEmail, status } = req.query;
@@ -69,7 +94,7 @@ async function run() {
       res.send(donation);
     });
 
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken, async (req, res) => {
       try {
         const { blood, district, upazila, email, status } = req.query;
         const query = {};
@@ -95,6 +120,17 @@ async function run() {
         res.status(500).json({ message: "Error fetching data" });
       }
     });
+    app.get("/all-users", verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const { status } = req.query;
+        const query = {};
+        const results = await userCollection.find(query).toArray();
+        res.json(results);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching data" });
+      }
+    });
     app.get("/allusers", async (req, res) => {
       try {
         const { email } = req.query;
@@ -108,6 +144,20 @@ async function run() {
         console.error(error);
         res.status(500).json({ message: "Error fetching data" });
       }
+    });
+    app.get("/users/admin/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "Unauthorized Access" });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "Admin";
+      }
+      res.send({ admin });
     });
     app.get("/blogs", async (req, res) => {
       const { status } = req.query;
@@ -135,7 +185,7 @@ async function run() {
       const result = await donationRequestCollection.insertOne(newRequest);
       res.send(result);
     });
-    app.post("/blogs", async (req, res) => {
+    app.post("/blogs", verifyToken, verifyAdmin, async (req, res) => {
       const newBlogs = req.body;
       const result = await blogs.insertOne(newBlogs);
       res.send(result);
@@ -198,7 +248,7 @@ async function run() {
       });
       res.send(result);
     });
-    app.patch("/users/:id", async (req, res) => {
+    app.patch("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const target = await userCollection.findOne(query);
@@ -208,7 +258,7 @@ async function run() {
       });
       res.send(result);
     });
-    app.patch("/blogs/:id", async (req, res) => {
+    app.patch("/blogs/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const target = await blogs.findOne(query);
@@ -218,14 +268,19 @@ async function run() {
       });
       res.send(result);
     });
-    app.delete("/donationRequest/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const donation = await donationRequestCollection.findOne(query);
-      const result = await donationRequestCollection.deleteOne(query);
-      res.send(result);
-    });
-    app.delete("/blogs/:id", async (req, res) => {
+    app.delete(
+      "/donationRequest/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const donation = await donationRequestCollection.findOne(query);
+        const result = await donationRequestCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
+    app.delete("/blogs/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const donation = await blogs.findOne(query);
@@ -233,10 +288,10 @@ async function run() {
       res.send(result);
     });
 
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!"
-    // );
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
   }
 }
