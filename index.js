@@ -124,6 +124,9 @@ async function run() {
       try {
         const { status } = req.query;
         const query = {};
+        if (status && status !== "All") {
+          query.status = status;
+        }
         const results = await userCollection.find(query).toArray();
         res.json(results);
       } catch (error) {
