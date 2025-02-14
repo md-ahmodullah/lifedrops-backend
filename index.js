@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const userCollection = client.db("registerDB").collection("userCollection");
     const blogs = client.db("blogsDB").collection("blogs");
@@ -162,6 +162,20 @@ async function run() {
       }
       res.send({ admin });
     });
+    app.get("/users/volunteer/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "Unauthorized Access" });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let volunteer = false;
+      if (user) {
+        volunteer = user?.role === "volunteer";
+      }
+      res.send({ volunteer });
+    });
     app.get("/blogs", async (req, res) => {
       const { status } = req.query;
       const query = {};
@@ -291,10 +305,10 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
   }
 }
