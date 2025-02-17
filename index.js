@@ -285,18 +285,13 @@ async function run() {
       });
       res.send(result);
     });
-    app.delete(
-      "/donationRequest/:id",
-      verifyToken,
-      verifyAdmin,
-      async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const donation = await donationRequestCollection.findOne(query);
-        const result = await donationRequestCollection.deleteOne(query);
-        res.send(result);
-      }
-    );
+    app.delete("/donationRequest/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const donation = await donationRequestCollection.findOne(query);
+      const result = await donationRequestCollection.deleteOne(query);
+      res.send(result);
+    });
     app.delete("/blogs/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
