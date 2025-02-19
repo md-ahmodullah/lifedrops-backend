@@ -301,7 +301,7 @@ async function run() {
       res.send(result);
     });
 
-    // payment intent
+    // payment intent api
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
