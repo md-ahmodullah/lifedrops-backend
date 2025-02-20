@@ -10,6 +10,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://life-drops-b7147.web.app"],
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -30,6 +31,7 @@ async function run() {
 
     const userCollection = client.db("registerDB").collection("userCollection");
     const blogs = client.db("blogsDB").collection("blogs");
+    const fundings = client.db("fundingDB").collection("funding");
 
     const donationRequestCollection = client
       .db("requestDB")
@@ -192,6 +194,10 @@ async function run() {
       const blog = await blogs.findOne(query);
       res.send(blog);
     });
+    app.get("/fundings", async (req, res) => {
+      const result = await fundings.find().toArray();
+      res.json(result);
+    });
 
     app.post("/users", async (req, res) => {
       const newUsers = req.body;
@@ -206,6 +212,11 @@ async function run() {
     app.post("/blogs", verifyToken, verifyAdmin, async (req, res) => {
       const newBlogs = req.body;
       const result = await blogs.insertOne(newBlogs);
+      res.send(result);
+    });
+    app.post("/funding", async (req, res) => {
+      const funding = req.body;
+      const result = await fundings.insertOne(funding);
       res.send(result);
     });
 
@@ -308,11 +319,12 @@ async function run() {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: "usd",
-        payment_method_types: ["cards"],
+        payment_method_types: ["card"],
       });
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
+      // res.send({
+      //   clientSecret: paymentIntent.client_secret,
+      // });
+      res.json({ clientSecret: paymentIntent.client_secret });
     });
 
     // await client.db("admin").command({ ping: 1 });
